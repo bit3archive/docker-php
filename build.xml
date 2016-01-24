@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="bit3/docker" default="help">
+  <property name="php-all:versions" value="5.6,7.0"/>
+  <property name="php-all:tags" value="cli,cli-debug,fpm,fpm-debug"/>
+
+  <target name="help">
+    <echo>bit3 docker container build file</echo>
+    <echo>usage: phing [build|publish]</echo>
+  </target>
+
+  <target name="build"
+          depends="build:composer,
+                   build:php-all"/>
+
+  <target name="publish"
+          depends="publish:composer,
+                   publish:php-all"/>
+
+  <!-- ***** composer ***** -->
+
+  <target name="build:composer">
+    <tstamp/>
+    <phingcall target="docker-build">
+      <param name="directory" value="composer"/>
+      <param name="name" value="bit3/composer"/>
+      <param name="tags" value="${DSTAMP},latest"/>
+    </phingcall>
+  </target>
+  <target name="publish:composer">
+    <tstamp/>
+    <phingcall target="docker-publish">
+      <param name="name" value="bit3/composer"/>
+      <param name="tags" value="${DSTAMP},latest"/>
+    </phingcall>
+  </target>
+
+  <!-- ***** php-all ***** -->
+
+  <target name="build:php-all">
+    <phingcall target="build:php-all:5.6"/>
+    <phingcall target="build:php-all:7.0"/>
+  </target>
+  <target name="publish:php-all">
+    <phingcall target="publish:php-all:5.6"/>
+    <phingcall target="publish:php-all:7.0"/>
+  </target>
+
+  <!-- ***** php-all :: PHP 5.6 ***** -->
+
+  <target name="build:php-all:5.6">
+    <phingcall target="build:php-all:5.6:cli"/>
+    <phingcall target="build:php-all:5.6:cli-debug"/>
+    <phingcall target="build:php-all:5.6:fpm"/>
+    <phingcall target="build:php-all:5.6:fpm-debug"/>
+  </target>
+  <target name="publish:php-all:5.6">
+    <phingcall target="publish:php-all:5.6:cli"/>
+    <phingcall target="publish:php-all:5.6:cli-debug"/>
+    <phingcall target="publish:php-all:5.6:fpm"/>
+    <phingcall target="publish:php-all:5.6:fpm-debug"/>
+  </target>
+
+  <!-- CLI -->
+  <target name="build:php-all:5.6:cli">
+    <phingcall target="docker-build">
+      <param name="directory" value="php-all/5.6/cli"/>
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="5.6.17-cli,5.6-cli,5-cli"/>
+    </phingcall>
+  </target>
+  <target name="build:php-all:5.6:cli-debug">
+    <phingcall target="docker-build">
+      <param name="directory" value="php-all/5.6/cli-debug"/>
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="5.6.17-cli-debug,5.6-cli-debug,5-cli-debug"/>
+    </phingcall>
+  </target>
+  <target name="publish:php-all:5.6:cli">
+    <phingcall target="docker-publish">
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="5.6.17-cli,5.6-cli,5-cli"/>
+    </phingcall>
+  </target>
+  <target name="publish:php-all:5.6:cli-debug">
+    <phingcall target="docker-publish">
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="5.6.17-cli-debug,5.6-cli-debug,5-cli-debug"/>
+    </phingcall>
+  </target>
+
+  <!-- FPM -->
+  <target name="build:php-all:5.6:fpm">
+    <phingcall target="docker-build">
+      <param name="directory" value="php-all/5.6/fpm"/>
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="5.6.17-fpm,5.6-fpm,5-fpm"/>
+    </phingcall>
+  </target>
+  <target name="build:php-all:5.6:fpm-debug">
+    <phingcall target="docker-build">
+      <param name="directory" value="php-all/5.6/fpm-debug"/>
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="5.6.17-fpm-debug,5.6-fpm-debug,5-fpm-debug"/>
+    </phingcall>
+  </target>
+  <target name="publish:php-all:5.6:fpm">
+    <phingcall target="docker-publish">
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="5.6.17-fpm,5.6-fpm,5-fpm"/>
+    </phingcall>
+  </target>
+  <target name="publish:php-all:5.6:fpm-debug">
+    <phingcall target="docker-publish">
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="5.6.17-fpm-debug,5.6-fpm-debug,5-fpm-debug"/>
+    </phingcall>
+  </target>
+
+  <!-- ***** php-all :: PHP 7.0 ***** -->
+
+  <target name="build:php-all:7.0">
+    <phingcall target="build:php-all:7.0:cli"/>
+    <phingcall target="build:php-all:7.0:cli-debug"/>
+    <phingcall target="build:php-all:7.0:fpm"/>
+    <phingcall target="build:php-all:7.0:fpm-debug"/>
+  </target>
+  <target name="publish:php-all:7.0">
+    <phingcall target="publish:php-all:7.0:cli"/>
+    <phingcall target="publish:php-all:7.0:cli-debug"/>
+    <phingcall target="publish:php-all:7.0:fpm"/>
+    <phingcall target="publish:php-all:7.0:fpm-debug"/>
+  </target>
+
+  <!-- CLI -->
+  <target name="build:php-all:7.0:cli">
+    <phingcall target="docker-build">
+      <param name="directory" value="php-all/7.0/cli"/>
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="7.0.2-cli,7.0-cli,7-cli"/>
+    </phingcall>
+  </target>
+  <target name="build:php-all:7.0:cli-debug">
+    <phingcall target="docker-build">
+      <param name="directory" value="php-all/7.0/cli-debug"/>
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="7.0.2-cli-debug,7.0-cli-debug,7-cli-debug"/>
+    </phingcall>
+  </target>
+  <target name="publish:php-all:7.0:cli">
+    <phingcall target="docker-publish">
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="7.0.2-cli,7.0-cli,7-cli"/>
+    </phingcall>
+  </target>
+  <target name="publish:php-all:7.0:cli-debug">
+    <phingcall target="docker-publish">
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="7.0.2-cli-debug,7.0-cli-debug,7-cli-debug"/>
+    </phingcall>
+  </target>
+
+  <!-- FPM -->
+  <target name="build:php-all:7.0:fpm">
+    <phingcall target="docker-build">
+      <param name="directory" value="php-all/7.0/fpm"/>
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="7.0.2-fpm,7.0-fpm,7-fpm"/>
+    </phingcall>
+  </target>
+  <target name="build:php-all:7.0:fpm-debug">
+    <phingcall target="docker-build">
+      <param name="directory" value="php-all/7.0/fpm-debug"/>
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="7.0.2-fpm-debug,7.0-fpm-debug,7-fpm-debug"/>
+    </phingcall>
+  </target>
+  <target name="publish:php-all:7.0:fpm">
+    <phingcall target="docker-publish">
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="7.0.2-fpm,7.0-fpm,7-fpm"/>
+    </phingcall>
+  </target>
+  <target name="publish:php-all:7.0:fpm-debug">
+    <phingcall target="docker-publish">
+      <param name="name" value="bit3/php-all"/>
+      <param name="tags" value="7.0.2-fpm-debug,7.0-fpm-debug,7-fpm-debug"/>
+    </phingcall>
+  </target>
+
+  <!-- ***** Shared targets *****  -->
+
+  <target name="docker-build" hidden="true">
+    <foreach list="${tags}" param="tag" target="docker-build-tag"/>
+  </target>
+
+  <target name="docker-build-tag" hidden="true">
+    <exec executable="docker" passthru="true" checkreturn="true">
+      <arg value="build"/>
+      <arg value="-t"/>
+      <arg value="${name}:${tag}"/>
+      <arg value="${directory}"/>
+    </exec>
+  </target>
+
+  <target name="docker-publish" hidden="true">
+    <foreach list="${tags}" param="tag" target="docker-push"/>
+  </target>
+
+  <target name="docker-push" hidden="true">
+    <exec executable="docker" passthru="true" checkreturn="true">
+      <arg value="push"/>
+      <arg value="${name}:${tag}"/>
+    </exec>
+  </target>
+</project>

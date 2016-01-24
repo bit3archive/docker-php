@@ -1,9 +1,19 @@
-# PHP Docker Container for developers
+# Docker Containers
 
-Contains a lot of php5 modules!
-Useful for local development fpm servers.
+## bit3/composer
 
-## List of modules
+A docker container that contains [composer](https://getcomposer.org/).
+To use this image, I prefer to set an alias like this one:
+
+```
+alias composer='docker run --rm -it --user=$UID --volume=$HOME/.composer:/.composer --volume=$(pwd):/var/www/html bit3/composer composer'
+```
+
+## bit3/php-all
+
+PHP containers containing a lot php modules! Useful for developmers, not designed for production usage!
+
+### List of modules
 
 - apcu
 - bz2
@@ -21,7 +31,7 @@ Useful for local development fpm servers.
 - ldap
 - mbstring
 - mcrypt
-- mysql
+- mysql (php 5.x only)
 - mysqli
 - pcntl
 - pdo
@@ -39,14 +49,17 @@ Useful for local development fpm servers.
 - sockets
 - tidy
 - tokenizer
+- xdebug (`*-debug` versions only)
 - xml
-- xmlreader
+- xmlreader (php 5.x only)
 - xmlrpc
-- xmlwriter
+- xmlwriter (php 5.x only)
 - xsl
 - zip
 
-## Configuration tweaks
+### Configuration tweaks
+
+#### php-all
 
 ```ini
 ; Development
@@ -60,4 +73,14 @@ short_open_tag = Off
 magic_quotes_gpc = Off
 register_globals = Off
 session.auto_start = Off
+```
+
+#### php-all-debug
+
+```ini
+; Debugging settings
+; xdebug.remote_autostart = 1
+xdebug.remote_enable = 1
+xdebug.remote_host = 172.17.0.1
+; xdebug.remote_port = 9000
 ```
