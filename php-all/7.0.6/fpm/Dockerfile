@@ -269,5 +269,3 @@ RUN set -x \
 # set the working dir
 WORKDIR /var/www/html
 
-# set the command
-CMD ["zsh"]

@@ -292,3 +292,4 @@ WORKDIR /var/www/html
 
 # set the command
 CMD ["zsh"]
+

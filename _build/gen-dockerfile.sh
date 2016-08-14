@@ -581,6 +581,13 @@ RUN set -x \\
 # set the working dir
 WORKDIR /var/www/html
 
+EOF
+
+if [[ "cli" == "$KIND" ]]; then
+    cat <<EOF
 # set the command
 CMD ["zsh"]
+
 EOF
+fi
+
