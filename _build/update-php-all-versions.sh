@@ -15,16 +15,20 @@ curl --version >/dev/null 2>&1 || die "curl must be installed"
 jq --version >/dev/null 2>&1 || die "jq must be installed"
 xmlstarlet --version >/dev/null 2>&1 || die "xmlstarlet must be installed"
 
+DIR=$(dirname "$0")
 
 # Fetch the tags
 info "Fetching php versions from docker hub"
-curl -s https://index.docker.io/v1/repositories/php/tags > tags.json
+if [[ ! -f tags.json ]]; then
+    curl -s https://index.docker.io/v1/repositories/php/tags > tags.json
+fi
 
 
 # Read active versions from official php container
 VERSIONS=$(jq -r '.[].name' tags.json)
-# filter out unsupported alpine images
-VERSIONS=$(echo "$VERSIONS" | grep -v alpine)
+# filter out unsupported images
+VERSIONS=$(echo "$VERSIONS" | grep -vE "alpine|alpha|beta|RC")
+VERSIONS=$(echo "$VERSIONS" | while read V; do "$DIR/version-compare.sh" "$V" ">" "5.6.1" && echo "$V"; done)
 # filter out versions with only major+minor
 VERSIONS=$(echo "$VERSIONS" | grep -vE '^[[:digit:]]*\.[[:digit:]]*(-.*|$)')
 # filter versions with kind
@@ -34,23 +38,14 @@ VERSION_PATHNAMES=$(echo "$VERSIONS" | sed 's;-;/;' | sed 's;^;php-all/;' | sort
 
 
 # Load own container versions
-if [[ -d "php-all" ]]; then
-    EXISTING_VERSION_PATHNAMES=$(find php-all -mindepth 2 -maxdepth 2 -type d | sort -V)
-else
-    EXISTING_VERSION_PATHNAMES=""
-fi
+EXISTING_VERSION_PATHNAMES=$(find php-all -mindepth 2 -maxdepth 2 -type d | sort -V || :)
 
 
 # Determine new and superfluous (deprecates) versions
-if [[ -z "$EXISTING_VERSION_PATHNAMES" ]]; then
-    NEW_VERSION_PATHNAMES="$VERSION_PATHNAMES"
-    SUPERFLUOUS_VERSION_PATHNAMES=""
-else
-    DIFF=$(diff <(echo "$VERSION_PATHNAMES") <(echo "$EXISTING_VERSION_PATHNAMES"))
-    NEW_VERSION_PATHNAMES=$(echo "$DIFF" | grep '< ' | cut -c 3-)
-    SUPERFLUOUS_VERSION_PATHNAMES=$(echo "$DIFF" | grep '> ' | cut -c 3-)
-fi
+DIFF=$(diff <(echo "$VERSION_PATHNAMES") <(echo "$EXISTING_VERSION_PATHNAMES") || :)
 
+NEW_VERSION_PATHNAMES=$(echo "$DIFF" | grep '< ' | cut -c 3- || :)
+SUPERFLUOUS_VERSION_PATHNAMES=$(echo "$DIFF" | grep '> ' | cut -c 3- || :)
 
 # Delete superfluous version
 for PATHNAME in $SUPERFLUOUS_VERSION_PATHNAMES; do
@@ -63,7 +58,7 @@ done
 
 # Clean empty directories
 if [[ -d "php-all" ]]; then
-    find php-all/ -type d -empty -delete
+    find php-all/ -type d -empty -delete || :
 fi
 
 
@@ -79,6 +74,3 @@ for PATHNAME in $NEW_VERSION_PATHNAMES; do
     cp _build/zshrc "$PATHNAME/zshrc"
 done
 
-
-# Cleanup
-rm tags.json

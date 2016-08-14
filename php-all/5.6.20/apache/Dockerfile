@@ -1,5 +1,9 @@
 FROM php:5.6.20-apache
 
+# Make sure conf.d exists
+RUN set -x \
+    && mkdir -p /usr/local/etc/php/conf.d/
+
 # Install system packages
 RUN set -x \
     && apt-get update \
@@ -8,14 +12,14 @@ RUN set -x \
 
 # install apcu php module
 RUN set -x \
-    && pecl install apcu-4.0.10 \
+    && pecl install apcu-4.0.11 \
     && echo extension=apcu.so > /usr/local/etc/php/conf.d/apcu.ini
 
 # install bz2 php module
 RUN set -x \
     && apt-get update \
     && apt-get install -y bzip2 libbz2-dev \
-    && docker-php-ext-install -j$(nproc) bz2 \
+    && docker-php-ext-install bz2 \
     && apt-get remove -y libbz2-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
@@ -24,34 +28,34 @@ RUN set -x \
 RUN set -x \
     && apt-get update \
     && apt-get install -y libcurl4-openssl-dev libssl1.0.0 libssl-dev \
-    && docker-php-ext-install -j$(nproc) curl \
+    && docker-php-ext-install curl \
     && apt-get remove -y libcurl4-openssl-dev libssl-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
 
 # install ctype php module
-RUN docker-php-ext-install -j$(nproc) ctype
+RUN docker-php-ext-install ctype
 
 # install dom php module
 RUN set -x \
     && apt-get update \
     && apt-get install -y libxml2 libxml2-dev \
-    && docker-php-ext-install -j$(nproc) dom \
+    && docker-php-ext-install dom \
     && apt-get remove -y libxml2-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
 
 # install exif php module
-RUN docker-php-ext-install -j$(nproc) exif
+RUN docker-php-ext-install exif
 
 # install fileinfo php module
-RUN docker-php-ext-install -j$(nproc) fileinfo
+RUN docker-php-ext-install fileinfo
 
 # install ftp php module
 RUN set -x \
     && apt-get update \
     && apt-get install -y libssl1.0.0 libssl-dev \
-    && docker-php-ext-install -j$(nproc) ftp \
+    && docker-php-ext-install ftp \
     && apt-get remove -y libssl-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
@@ -61,28 +65,28 @@ RUN set -x \
     && apt-get update \
     && apt-get install -y libvpx1 libvpx-dev libjpeg62-turbo libjpeg62-turbo-dev libpng12-0 libpng12-dev libxpm4 libxpm-dev libfreetype6 libfreetype6-dev \
     && docker-php-ext-configure gd --with-vpx-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/include/ --with-xpm-dir=/usr/include/ -with-freetype-dir=/usr/include/ \
-    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-install gd \
     && apt-get remove -y libvpx-dev libjpeg-dev libpng12-dev libxpm-dev libfreetype6-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
 
 # install gettext php module
-RUN docker-php-ext-install -j$(nproc) gettext
+RUN docker-php-ext-install gettext
 
 # install iconv php module
-RUN docker-php-ext-install -j$(nproc) iconv
+RUN docker-php-ext-install iconv
 
 # install intl php module
 RUN set -x \
     && apt-get update \
-    && apt-get install -y libicu52 libicu-dev \
-    && docker-php-ext-install -j$(nproc) intl \
-    && apt-get remove -y libicu-dev \
+    && apt-get install -y g++ libicu52 libicu-dev \
+    && docker-php-ext-install intl \
+    && apt-get remove -y g++ libicu-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
 
 # install json php module
-RUN docker-php-ext-install -j$(nproc) json
+RUN docker-php-ext-install json
 
 # install ldap php module
 # Workaround: http://serverfault.com/a/444433
@@ -90,40 +94,40 @@ RUN set -x \
     && apt-get update \
     && apt-get install -y libldap-2.4-2 libldap2-dev \
     && ln -fs /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/ \
-    && docker-php-ext-install -j$(nproc) ldap \
+    && docker-php-ext-install ldap \
     && apt-get remove -y libldap2-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
 
 # install mbstring php module
-RUN docker-php-ext-install -j$(nproc) mbstring
+RUN docker-php-ext-install mbstring
 
 # install mcrypt php module
 RUN set -x \
     && apt-get update \
     && apt-get install -y libmcrypt4 libmcrypt-dev \
-    && docker-php-ext-install -j$(nproc) mcrypt \
+    && docker-php-ext-install mcrypt \
     && apt-get remove -y libmcrypt-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
 
 # install mysql php module
-RUN docker-php-ext-install -j$(nproc) mysql
+RUN docker-php-ext-install mysql
 
 # install mysqli php module
-RUN docker-php-ext-install -j$(nproc) mysqli
+RUN docker-php-ext-install mysqli
 
 # install pcntl php module
-RUN docker-php-ext-install -j$(nproc) pcntl
+RUN docker-php-ext-install pcntl
 
 # install pdo php module
 RUN set -x \
     && apt-get update \
     && apt-get install -y libpq5 libpq-dev libsqlite3-0 libsqlite3-dev \
-    && docker-php-ext-install -j$(nproc) pdo \
-    && docker-php-ext-install -j$(nproc) pdo_mysql \
-    && docker-php-ext-install -j$(nproc) pdo_pgsql \
-    && docker-php-ext-install -j$(nproc) pdo_sqlite \
+    && docker-php-ext-install pdo \
+    && docker-php-ext-install pdo_mysql \
+    && docker-php-ext-install pdo_pgsql \
+    && docker-php-ext-install pdo_sqlite \
     && apt-get remove -y libpq-dev libsqlite3-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
@@ -132,7 +136,7 @@ RUN set -x \
 RUN set -x \
     && apt-get update \
     && apt-get install -y libpq5 libpq-dev \
-    && docker-php-ext-install -j$(nproc) pgsql \
+    && docker-php-ext-install pgsql \
     && apt-get remove -y libpq-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
@@ -141,19 +145,19 @@ RUN set -x \
 RUN set -x \
     && apt-get update \
     && apt-get install -y libssl1.0.0 libssl-dev \
-    && docker-php-ext-install -j$(nproc) phar \
+    && docker-php-ext-install phar \
     && apt-get remove -y libssl-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
 
 # install posix php module
-RUN docker-php-ext-install -j$(nproc) posix
+RUN docker-php-ext-install posix
 
 # install pspell php module
 RUN set -x \
     && apt-get update \
     && apt-get install -y libaspell15 libpspell-dev \
-    && docker-php-ext-install -j$(nproc) pspell \
+    && docker-php-ext-install pspell \
     && apt-get remove -y libpspell-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
@@ -162,19 +166,19 @@ RUN set -x \
 RUN set -x \
     && apt-get update \
     && apt-get install -y librecode0 librecode-dev \
-    && docker-php-ext-install -j$(nproc) recode \
+    && docker-php-ext-install recode \
     && apt-get remove -y librecode-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
 
 # install session php module
-RUN docker-php-ext-install -j$(nproc) session
+RUN docker-php-ext-install session
 
 # install snmp php module
 RUN set -x \
     && apt-get update \
     && apt-get install -y snmp libsnmp30 libsnmp-dev \
-    && docker-php-ext-install -j$(nproc) snmp \
+    && docker-php-ext-install snmp \
     && apt-get remove -y libsnmp-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
@@ -183,31 +187,31 @@ RUN set -x \
 RUN set -x \
     && apt-get update \
     && apt-get install -y libxml2 libxml2-dev \
-    && docker-php-ext-install -j$(nproc) soap \
+    && docker-php-ext-install soap \
     && apt-get remove -y libxml2-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
 
 # install sockets php module
-RUN docker-php-ext-install -j$(nproc) sockets
+RUN docker-php-ext-install sockets
 
 # install tidy php module
 RUN set -x \
     && apt-get update \
     && apt-get install -y libtidy-0.99-0 libtidy-dev \
-    && docker-php-ext-install -j$(nproc) tidy \
+    && docker-php-ext-install tidy \
     && apt-get remove -y libtidy-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
 
 # install tokenizer php module
-RUN docker-php-ext-install -j$(nproc) tokenizer
+RUN docker-php-ext-install tokenizer
 
 # install xml php module
 RUN set -x \
     && apt-get update \
     && apt-get install -y libxml2 libxml2-dev \
-    && docker-php-ext-install -j$(nproc) xml \
+    && docker-php-ext-install xml \
     && apt-get remove -y libxml2-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
@@ -216,7 +220,7 @@ RUN set -x \
 RUN set -x \
     && apt-get update \
     && apt-get install -y libxml2 libxml2-dev \
-    && docker-php-ext-install -j$(nproc) xmlreader \
+    && docker-php-ext-install xmlreader \
     && apt-get remove -y libxml2-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
@@ -225,7 +229,7 @@ RUN set -x \
 RUN set -x \
     && apt-get update \
     && apt-get install -y libxml2 libxml2-dev \
-    && docker-php-ext-install -j$(nproc) xmlrpc \
+    && docker-php-ext-install xmlrpc \
     && apt-get remove -y libxml2-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
@@ -234,7 +238,7 @@ RUN set -x \
 RUN set -x \
     && apt-get update \
     && apt-get install -y libxml2 libxml2-dev \
-    && docker-php-ext-install -j$(nproc) xmlwriter \
+    && docker-php-ext-install xmlwriter \
     && apt-get remove -y libxml2-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
@@ -243,7 +247,7 @@ RUN set -x \
 RUN set -x \
     && apt-get update \
     && apt-get install -y libxslt1.1 libxslt-dev \
-    && docker-php-ext-install -j$(nproc) xsl \
+    && docker-php-ext-install xsl \
     && apt-get remove -y libxslt-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*
@@ -252,7 +256,7 @@ RUN set -x \
 RUN set -x \
     && apt-get update \
     && apt-get install -y libzip2 libzip-dev \
-    && docker-php-ext-install -j$(nproc) zip \
+    && docker-php-ext-install zip \
     && apt-get remove -y libzip-dev \
     && apt-get autoremove -y \
     && rm -r /var/lib/apt/lists/*

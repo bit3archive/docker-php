@@ -12,6 +12,11 @@ isPHP5() {
     [[ "$MAJOR" -lt 7 ]] && echo 1 || echo ""
 }
 
+isPHP7() {
+    MAJOR=$(echo "$VERSION" | awk -F '.' '{print $1}')
+    [[ "$MAJOR" -ge 7 ]] && echo 1 || echo ""
+}
+
 # Read script options
 while getopts hv:k: OPT; do
     case $OPT in
@@ -46,7 +51,8 @@ fi
 >&2 echo -e "\033[33m * \033[0mVersion: \033[96m$VERSION\033[0m"
 >&2 echo -e "\033[33m * \033[0mKind: \033[96m$KIND\033[0m"
 
-APCU=1
+APCU4=`isPHP5`
+APCU5=`isPHP7`
 BZ2=1
 CURL=1
 CTYPE=1
@@ -87,6 +93,10 @@ ZIP=1
 cat <<EOF
 FROM php:${FROM_VERSION}
 
+# Make sure conf.d exists
+RUN set -x \\
+    && mkdir -p /usr/local/etc/php/conf.d/
+
 # Install system packages
 RUN set -x \\
     && apt-get update \\
@@ -95,11 +105,21 @@ RUN set -x \\
 
 EOF
 
-if [[ -n "$APCU" ]]; then
+if [[ -n "$APCU4" ]]; then
     cat <<EOF
 # install apcu php module
 RUN set -x \\
-    && pecl install apcu-4.0.10 \\
+    && pecl install apcu-4.0.11 \\
+    && echo extension=apcu.so > /usr/local/etc/php/conf.d/apcu.ini
+
+EOF
+fi
+
+if [[ -n "$APCU5" ]]; then
+    cat <<EOF
+# install apcu php module
+RUN set -x \\
+    && pecl install apcu-5.1.5 \\
     && echo extension=apcu.so > /usr/local/etc/php/conf.d/apcu.ini
 
 EOF
@@ -111,7 +131,7 @@ if [[ -n "$BZ2" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y bzip2 libbz2-dev \\
-    && docker-php-ext-install -j\$(nproc) bz2 \\
+    && docker-php-ext-install bz2 \\
     && apt-get remove -y libbz2-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -125,7 +145,7 @@ if [[ -n "$CURL" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libcurl4-openssl-dev libssl1.0.0 libssl-dev \\
-    && docker-php-ext-install -j\$(nproc) curl \\
+    && docker-php-ext-install curl \\
     && apt-get remove -y libcurl4-openssl-dev libssl-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -136,7 +156,7 @@ fi
 if [[ -n "$CTYPE" ]]; then
     cat <<EOF
 # install ctype php module
-RUN docker-php-ext-install -j\$(nproc) ctype
+RUN docker-php-ext-install ctype
 
 EOF
 fi
@@ -147,7 +167,7 @@ if [[ -n "$DOM" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libxml2 libxml2-dev \\
-    && docker-php-ext-install -j\$(nproc) dom \\
+    && docker-php-ext-install dom \\
     && apt-get remove -y libxml2-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -158,7 +178,7 @@ fi
 if [[ -n "$EXIF" ]]; then
     cat <<EOF
 # install exif php module
-RUN docker-php-ext-install -j\$(nproc) exif
+RUN docker-php-ext-install exif
 
 EOF
 fi
@@ -166,7 +186,7 @@ fi
 if [[ -n "$FILEINFO" ]]; then
     cat <<EOF
 # install fileinfo php module
-RUN docker-php-ext-install -j\$(nproc) fileinfo
+RUN docker-php-ext-install fileinfo
 
 EOF
 fi
@@ -177,7 +197,7 @@ if [[ -n "$FTP" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libssl1.0.0 libssl-dev \\
-    && docker-php-ext-install -j\$(nproc) ftp \\
+    && docker-php-ext-install ftp \\
     && apt-get remove -y libssl-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -192,7 +212,7 @@ RUN set -x \\
     && apt-get update \\
     && apt-get install -y libvpx1 libvpx-dev libjpeg62-turbo libjpeg62-turbo-dev libpng12-0 libpng12-dev libxpm4 libxpm-dev libfreetype6 libfreetype6-dev \\
     && docker-php-ext-configure gd --with-vpx-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/include/ --with-xpm-dir=/usr/include/ -with-freetype-dir=/usr/include/ \\
-    && docker-php-ext-install -j\$(nproc) gd \\
+    && docker-php-ext-install gd \\
     && apt-get remove -y libvpx-dev libjpeg-dev libpng12-dev libxpm-dev libfreetype6-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -203,7 +223,7 @@ fi
 if [[ -n "$GETTEXT" ]]; then
     cat <<EOF
 # install gettext php module
-RUN docker-php-ext-install -j\$(nproc) gettext
+RUN docker-php-ext-install gettext
 
 EOF
 fi
@@ -211,7 +231,7 @@ fi
 if [[ -n "$ICONV" ]]; then
     cat <<EOF
 # install iconv php module
-RUN docker-php-ext-install -j\$(nproc) iconv
+RUN docker-php-ext-install iconv
 
 EOF
 fi
@@ -221,9 +241,9 @@ if [[ -n "$INTL" ]]; then
 # install intl php module
 RUN set -x \\
     && apt-get update \\
-    && apt-get install -y libicu52 libicu-dev \\
-    && docker-php-ext-install -j\$(nproc) intl \\
-    && apt-get remove -y libicu-dev \\
+    && apt-get install -y g++ libicu52 libicu-dev \\
+    && docker-php-ext-install intl \\
+    && apt-get remove -y g++ libicu-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
 
@@ -233,7 +253,7 @@ fi
 if [[ -n "$JSON" ]]; then
     cat <<EOF
 # install json php module
-RUN docker-php-ext-install -j\$(nproc) json
+RUN docker-php-ext-install json
 
 EOF
 fi
@@ -246,7 +266,7 @@ RUN set -x \\
     && apt-get update \\
     && apt-get install -y libldap-2.4-2 libldap2-dev \\
     && ln -fs /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/ \\
-    && docker-php-ext-install -j\$(nproc) ldap \\
+    && docker-php-ext-install ldap \\
     && apt-get remove -y libldap2-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -257,7 +277,7 @@ fi
 if [[ -n "$MBSTRING" ]]; then
     cat <<EOF
 # install mbstring php module
-RUN docker-php-ext-install -j\$(nproc) mbstring
+RUN docker-php-ext-install mbstring
 
 EOF
 fi
@@ -268,7 +288,7 @@ if [[ -n "$MCRYPT" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libmcrypt4 libmcrypt-dev \\
-    && docker-php-ext-install -j\$(nproc) mcrypt \\
+    && docker-php-ext-install mcrypt \\
     && apt-get remove -y libmcrypt-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -279,7 +299,7 @@ fi
 if [[ -n "$MYSQL" ]]; then
     cat <<EOF
 # install mysql php module
-RUN docker-php-ext-install -j\$(nproc) mysql
+RUN docker-php-ext-install mysql
 
 EOF
 fi
@@ -287,7 +307,7 @@ fi
 if [[ -n "$MYSQLI" ]]; then
     cat <<EOF
 # install mysqli php module
-RUN docker-php-ext-install -j\$(nproc) mysqli
+RUN docker-php-ext-install mysqli
 
 EOF
 fi
@@ -295,7 +315,7 @@ fi
 if [[ -n "$PCNTL" ]]; then
     cat <<EOF
 # install pcntl php module
-RUN docker-php-ext-install -j\$(nproc) pcntl
+RUN docker-php-ext-install pcntl
 
 EOF
 fi
@@ -306,10 +326,10 @@ if [[ -n "$PDO" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libpq5 libpq-dev libsqlite3-0 libsqlite3-dev \\
-    && docker-php-ext-install -j\$(nproc) pdo \\
-    && docker-php-ext-install -j\$(nproc) pdo_mysql \\
-    && docker-php-ext-install -j\$(nproc) pdo_pgsql \\
-    && docker-php-ext-install -j\$(nproc) pdo_sqlite \\
+    && docker-php-ext-install pdo \\
+    && docker-php-ext-install pdo_mysql \\
+    && docker-php-ext-install pdo_pgsql \\
+    && docker-php-ext-install pdo_sqlite \\
     && apt-get remove -y libpq-dev libsqlite3-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -323,7 +343,7 @@ if [[ -n "$PGSQL" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libpq5 libpq-dev \\
-    && docker-php-ext-install -j\$(nproc) pgsql \\
+    && docker-php-ext-install pgsql \\
     && apt-get remove -y libpq-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -337,7 +357,7 @@ if [[ -n "$PHAR" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libssl1.0.0 libssl-dev \\
-    && docker-php-ext-install -j\$(nproc) phar \\
+    && docker-php-ext-install phar \\
     && apt-get remove -y libssl-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -348,7 +368,7 @@ fi
 if [[ -n "$POSIX" ]]; then
     cat <<EOF
 # install posix php module
-RUN docker-php-ext-install -j\$(nproc) posix
+RUN docker-php-ext-install posix
 
 EOF
 fi
@@ -359,7 +379,7 @@ if [[ -n "$PSPELL" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libaspell15 libpspell-dev \\
-    && docker-php-ext-install -j\$(nproc) pspell \\
+    && docker-php-ext-install pspell \\
     && apt-get remove -y libpspell-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -373,7 +393,7 @@ if [[ -n "$RECODE" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y librecode0 librecode-dev \\
-    && docker-php-ext-install -j\$(nproc) recode \\
+    && docker-php-ext-install recode \\
     && apt-get remove -y librecode-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -384,7 +404,7 @@ fi
 if [[ -n "$SESSION" ]]; then
     cat <<EOF
 # install session php module
-RUN docker-php-ext-install -j\$(nproc) session
+RUN docker-php-ext-install session
 
 EOF
 fi
@@ -395,7 +415,7 @@ if [[ -n "$SNMP" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y snmp libsnmp30 libsnmp-dev \\
-    && docker-php-ext-install -j\$(nproc) snmp \\
+    && docker-php-ext-install snmp \\
     && apt-get remove -y libsnmp-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -409,7 +429,7 @@ if [[ -n "$SOAP" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libxml2 libxml2-dev \\
-    && docker-php-ext-install -j\$(nproc) soap \\
+    && docker-php-ext-install soap \\
     && apt-get remove -y libxml2-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -420,7 +440,7 @@ fi
 if [[ -n "$SOCKETS" ]]; then
     cat <<EOF
 # install sockets php module
-RUN docker-php-ext-install -j\$(nproc) sockets
+RUN docker-php-ext-install sockets
 
 EOF
 fi
@@ -431,7 +451,7 @@ if [[ -n "$TIDY" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libtidy-0.99-0 libtidy-dev \\
-    && docker-php-ext-install -j\$(nproc) tidy \\
+    && docker-php-ext-install tidy \\
     && apt-get remove -y libtidy-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -442,7 +462,7 @@ fi
 if [[ -n "$TOKENIZER" ]]; then
     cat <<EOF
 # install tokenizer php module
-RUN docker-php-ext-install -j\$(nproc) tokenizer
+RUN docker-php-ext-install tokenizer
 
 EOF
 fi
@@ -453,7 +473,7 @@ if [[ -n "$XML" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libxml2 libxml2-dev \\
-    && docker-php-ext-install -j\$(nproc) xml \\
+    && docker-php-ext-install xml \\
     && apt-get remove -y libxml2-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -467,7 +487,7 @@ if [[ -n "$XMLREADER" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libxml2 libxml2-dev \\
-    && docker-php-ext-install -j\$(nproc) xmlreader \\
+    && docker-php-ext-install xmlreader \\
     && apt-get remove -y libxml2-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -481,7 +501,7 @@ if [[ -n "$XMLRPC" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libxml2 libxml2-dev \\
-    && docker-php-ext-install -j\$(nproc) xmlrpc \\
+    && docker-php-ext-install xmlrpc \\
     && apt-get remove -y libxml2-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -495,7 +515,7 @@ if [[ -n "$XMLWRITER" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libxml2 libxml2-dev \\
-    && docker-php-ext-install -j\$(nproc) xmlwriter \\
+    && docker-php-ext-install xmlwriter \\
     && apt-get remove -y libxml2-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -509,7 +529,7 @@ if [[ -n "$XSL" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libxslt1.1 libxslt-dev \\
-    && docker-php-ext-install -j\$(nproc) xsl \\
+    && docker-php-ext-install xsl \\
     && apt-get remove -y libxslt-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*
@@ -523,7 +543,7 @@ if [[ -n "$ZIP" ]]; then
 RUN set -x \\
     && apt-get update \\
     && apt-get install -y libzip2 libzip-dev \\
-    && docker-php-ext-install -j\$(nproc) zip \\
+    && docker-php-ext-install zip \\
     && apt-get remove -y libzip-dev \\
     && apt-get autoremove -y \\
     && rm -r /var/lib/apt/lists/*

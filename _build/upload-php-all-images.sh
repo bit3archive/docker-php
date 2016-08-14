@@ -13,16 +13,20 @@ info() {
     fi
 }
 
+error() {
+    echo -e "\033[91m$1\033[0m";
+}
+
 VERBOSE=""
 
 # Read script options
 while getopts hv OPT; do
     case $OPT in
         "h") cat <<HELP
-Synopsis: build-php-all-images.sh -v
+Synopsis: upload-php-all-images.sh -v
 
 Options:
-  -v <version>  Be verbose
+  -v    Be verbose.
 HELP
             exit
             ;;
@@ -39,15 +43,21 @@ for PATHNAME in $PATHNAMES; do
     VERSION=$(echo "$PATHNAME" | awk -F '/' '{print $2}')
     KIND=$(echo "$PATHNAME" | awk -F '/' '{print $3}')
 
-    LOG="build-$VERSION-$KIND.log"
+    LOG="push-$VERSION-$KIND.log"
 
 
     if [[ $VERBOSE ]]; then
-        info "Build bit3/php-all:$VERSION-$KIND"
-        docker build -t "bit3/php-all:$VERSION-$KIND" "$PATHNAME" 2>&1 | sed "s/^/ ($VERSION-$KIND) |  /"
+        info "Push bit3/php-all:$VERSION-$KIND (@see $LOG)  "
+        docker push "bit3/php-all:$VERSION-$KIND"
+        EXIT=$?
     else
-        info "Build bit3/php-all:$VERSION-$KIND (@log $LOG)"
-        docker build -t "bit3/php-all:$VERSION-$KIND" "$PATHNAME" 2>&1 > "$LOG" || die "failed, see log for details"
+        docker push "bit3/php-all:$VERSION-$KIND" > "$LOG"
+        EXIT=$?
+    fi
+    
+    if [[ $EXIT -ne 0 ]]; then
+        error "failed"
+        exit $EXIT
     fi
 done
 

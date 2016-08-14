@@ -1,3 +1,7 @@
+build*.log
+tags.json
+
+
 ### Composer template
 composer.phar
 vendor/
